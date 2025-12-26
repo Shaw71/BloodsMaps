@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA V - Gestion des Territoires</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <h3>Configuration du Territoire</h3>
+            <label>Nom de la zone :</label>
+            <input type="text" id="zoneName" placeholder="ex: Grove Street">
+            
+            <label>Gérant :</label>
+            <input type="text" id="zoneOwner" placeholder="ex: Ballas">
+            
+            <label>Couleur :</label>
+            <select id="zoneColor">
+                <option value="#ff4b2b">Rouge</option>
+                <option value="#2ecc71">Vert</option>
+                <option value="#ffffff">Blanc</option>
+            </select>
+            
+            <div class="modal-actions">
+                <button id="saveZone" class="btn-save">Enregistrer</button>
+                <button id="cancelZone" class="btn-cancel">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
