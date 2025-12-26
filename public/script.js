@@ -5,7 +5,7 @@ const map = L.map('map', {
 });
 
 const bounds = [[0, 0], [8192, 8192]]; 
-L.tileLayer('https://wiki.21jumpclick.fr/images/7/76/Map_gta_V_with_ZIP_code.png', {
+L.tileLayer('map.jpg', {
     noWrap: true,
     bounds: bounds
 }).addTo(map);
