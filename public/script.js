@@ -1,11 +1,11 @@
 // 1. Connexion Supabase
 const SUPABASE_URL = "https://nlvnvwttxgtzibejdpos.supabase.co";
-const SUPABASE_KEY = "sb_publishable_am3sB4P7I6vgOoP-tmNtcg_yAXFpaVk";
+const SUPABASE_KEY = "sb_publishable_am3sB4P7I6vgOoP-tmNtcg_yAXFpaVk"; 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 2. Configuration de la Carte
-const mapWidth = 4000;  // Largeur de ton image
-const mapHeight = 4000; // Hauteur de ton image
+const mapWidth = 4000;
+const mapHeight = 4000;
 const bounds = [[0, 0], [mapHeight, mapWidth]];
 
 const map = L.map('map', {
@@ -16,11 +16,9 @@ const map = L.map('map', {
     maxBoundsViscosity: 1.0
 });
 
-// Chargement de l'image maps.png
 L.imageOverlay('maps.png', bounds, { noWrap: true }).addTo(map);
 map.fitBounds(bounds);
 
-// Configuration des outils de dessin (Geoman)
 map.pm.addControls({
     position: 'topleft',
     drawCircle: false,
@@ -32,35 +30,43 @@ map.pm.addControls({
 
 let tempLayer;
 
-// Quand on finit de dessiner une zone
 map.on('pm:create', (e) => {
     tempLayer = e.layer;
     document.getElementById('adminModal').style.display = 'block';
 });
 
-// Enregistrer la zone dans Supabase
+// 3. SAUVEGARDER
 document.getElementById('saveZone').onclick = async () => {
     const name = document.getElementById('zoneName').value;
     const owner = document.getElementById('zoneOwner').value;
     const color = document.getElementById('zoneColor').value;
-    const coordinates = tempLayer.getLatLngs()[0]; // Récupère les points du polygone
+    const coordinates = tempLayer.getLatLngs()[0];
+
+    console.log("Tentative d'envoi vers Supabase...");
 
     const { data, error } = await supabaseClient
-        .from('zones') // Nom de ta table Supabase
+        .from('zones') // Supabase cherche automatiquement dans le schéma public
         .insert([{ name, owner, color, coordinates }]);
 
     if (error) {
-        alert("Erreur lors de l'enregistrement : " + error.message);
+        console.error("Détails de l'erreur:", error);
+        alert("Erreur Supabase : " + error.message + "\nAssure-toi d'avoir créé la table dans le SQL Editor !");
     } else {
-        location.reload(); // Rafraîchit pour afficher la zone
+        console.log("Zone enregistrée avec succès !");
+        location.reload();
     }
 };
 
-// Charger les zones depuis Supabase au démarrage
+// 4. CHARGER
 async function loadZones() {
     const { data: zones, error } = await supabaseClient
         .from('zones')
         .select('*');
+
+    if (error) {
+        console.error("Erreur de chargement:", error.message);
+        return;
+    }
 
     if (zones) {
         zones.forEach(zone => {
@@ -76,11 +82,9 @@ async function loadZones() {
     }
 }
 
-// Bouton Annuler
 document.getElementById('cancelZone').onclick = () => {
     map.removeLayer(tempLayer);
     document.getElementById('adminModal').style.display = 'none';
 };
 
-// Lancement du chargement
 loadZones();
