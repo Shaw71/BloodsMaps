@@ -1,6 +1,6 @@
 // 1. Connexion Supabase
-const SUPABASE_URL = "https://TON_PROJET.supabase.co";
-const SUPABASE_KEY = "TA_CLE_ANON_PUBLIQUE";
+const SUPABASE_URL = "https://nlvnvwttxgtzibejdpos.supabase.co";
+const SUPABASE_KEY = "sb_publishable_am3sB4P7I6vgOoP-tmNtcg_yAXFpaVk";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 2. Configuration de la Carte
