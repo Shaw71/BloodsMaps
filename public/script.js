@@ -1,35 +1,86 @@
-body, html, #map {
-    margin: 0; padding: 0;
-    width: 100%; height: 100%;
-    background-color: #0b0b0b;
+// 1. Connexion Supabase
+const SUPABASE_URL = "https://TON_PROJET.supabase.co";
+const SUPABASE_KEY = "TA_CLE_ANON_PUBLIQUE";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 2. Configuration de la Carte
+const mapWidth = 4000;  // Largeur de ton image
+const mapHeight = 4000; // Hauteur de ton image
+const bounds = [[0, 0], [mapHeight, mapWidth]];
+
+const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -2,
+    maxZoom: 2,
+    maxBounds: bounds,
+    maxBoundsViscosity: 1.0
+});
+
+// Chargement de l'image maps.png
+L.imageOverlay('maps.png', bounds, { noWrap: true }).addTo(map);
+map.fitBounds(bounds);
+
+// Configuration des outils de dessin (Geoman)
+map.pm.addControls({
+    position: 'topleft',
+    drawCircle: false,
+    drawRectangle: false,
+    drawPolyline: false,
+    drawMarker: false,
+    drawCircleMarker: false
+});
+
+let tempLayer;
+
+// Quand on finit de dessiner une zone
+map.on('pm:create', (e) => {
+    tempLayer = e.layer;
+    document.getElementById('adminModal').style.display = 'block';
+});
+
+// Enregistrer la zone dans Supabase
+document.getElementById('saveZone').onclick = async () => {
+    const name = document.getElementById('zoneName').value;
+    const owner = document.getElementById('zoneOwner').value;
+    const color = document.getElementById('zoneColor').value;
+    const coordinates = tempLayer.getLatLngs()[0]; // Récupère les points du polygone
+
+    const { data, error } = await supabaseClient
+        .from('zones') // Nom de ta table Supabase
+        .insert([{ name, owner, color, coordinates }]);
+
+    if (error) {
+        alert("Erreur lors de l'enregistrement : " + error.message);
+    } else {
+        location.reload(); // Rafraîchit pour afficher la zone
+    }
+};
+
+// Charger les zones depuis Supabase au démarrage
+async function loadZones() {
+    const { data: zones, error } = await supabaseClient
+        .from('zones')
+        .select('*');
+
+    if (zones) {
+        zones.forEach(zone => {
+            L.polygon(zone.coordinates, {
+                color: zone.color,
+                fillColor: zone.color,
+                fillOpacity: 0.4,
+                weight: 2
+            })
+            .addTo(map)
+            .bindPopup(`<b>Territoire :</b> ${zone.name}<br><b>Gérant :</b> ${zone.owner}`);
+        });
+    }
 }
 
-/* Style de la fenêtre popup de saisie */
-.modal {
-    display: none; position: fixed; z-index: 2000;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-}
+// Bouton Annuler
+document.getElementById('cancelZone').onclick = () => {
+    map.removeLayer(tempLayer);
+    document.getElementById('adminModal').style.display = 'none';
+};
 
-.modal-content {
-    background: #1a1a1a; color: white;
-    margin: 10% auto; padding: 25px; width: 320px;
-    border: 2px solid #333; border-radius: 8px;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-label { display: block; margin-top: 15px; font-size: 14px; color: #bbb; }
-
-input, select {
-    width: 100%; margin: 8px 0; padding: 10px;
-    background: #222; border: 1px solid #444; color: white;
-    border-radius: 4px; box-sizing: border-box;
-}
-
-.modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
-
-.btn-save { background: #27ae60; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-.btn-cancel { background: #c0392b; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-
-.btn-save:hover { background: #2ecc71; }
-.btn-cancel:hover { background: #e74c3c; }
+// Lancement du chargement
+loadZones();
